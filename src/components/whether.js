@@ -9,25 +9,43 @@ class Whether extends React.Component {
 
         this.state = {
             whether: {},
-            isCityFound: true
+            isCityFound: true,
+            woeid: {}
         }
 
         this.location = props.match.params.location;
         this.handleSearchFunction = this.handleSearchFunction.bind(this);
     }
 
-    componentDidMount() {
+    async componentDidMount() {
         this.getWheather(this.location);
     }
 
-    getWheather(location) {
-        fetch(`https://localhost:44387/weatherforecast?location=${location}`)
+    async getWheather(location) {
+        await this.getWoeid(location);
+        this.getWheatherByWoeid(this.state.woeid);
+    }
+
+    getWheatherByWoeid(woeid) {
+        fetch(`https://www.metaweather.com/api/location/${woeid}/`)
             .then(res => res.json())
             .then((data) => {
-                this.setState({ whether: data, isCityFound: true });
+                this.setState({ whether: data });
             })
             .catch((error) => {
                 console.log(error);
+            });
+    }
+
+    getWoeid(location) {
+        let url = `https://www.metaweather.com/api/location/search/?query=${location}`;
+        return fetch(url)
+            .then(res => res.json())
+            .then((data) => {
+                this.state.woeid = data[0].woeid;
+                this.setState({ isCityFound: true });
+            })
+            .catch((error) => {
                 this.setState({ isCityFound: false })
             });
     }
